@@ -24,14 +24,23 @@
 <div class="body">
     <h3>Details</h3>
 
-    <p>First name: <span data-bind="text: firstName"></span></p>
+    <p>First name: <input type="text" data-bind="value: firstName" /></p>
+    <p>Last name: <input type="text" data-bind="value: lastName" /></p>
+
+    <p>Fullname name: <span data-bind="text: fullName"></span></p>
+
 </div>
 
 <script type="text/javascript">
     var viewModel = {
-        firstName: 'Bert'
+        firstName: ko.observable('Bert'),
+        lastName: ko.observable('Smith')
     };
+    viewModel.fullName = ko.dependentObservable(function () {
+        return this.firstName() + ' ' + this.lastName();
+    }, viewModel);
     ko.applyBindings(viewModel);
+
 </script>
 </body>
 </html>
