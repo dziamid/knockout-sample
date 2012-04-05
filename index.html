@@ -34,7 +34,7 @@
 
     <p>Fullname name: <span data-bind="text: fullName"></span></p>
 
-    <h2>Friends:</h2>
+    <h2>Friends: (<span data-bind="text: friends().length"></span>)</h2>
 
     <ul data-bind="template: {name: 'friendsTemplate', foreach: friends}"></ul>
 
@@ -47,7 +47,7 @@
         </li>
     </script>
 
-    <input type="button" data-bind="click: addFriend" value="Add friend">
+    <input type="button" data-bind="click: addFriend, enable: friends().length < 5" value="Add friend">
 
 </div>
 
