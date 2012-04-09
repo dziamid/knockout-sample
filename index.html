@@ -41,7 +41,7 @@
     <script id="friendsTemplate" type="text/html">
         <li>
             ${name}
-            <button data-bind="click: remove">Remove</button>
+            <button data-bind="click: $root.remove">Remove</button>
             <label for=""><input type="checkbox" data-bind="checked: isOnTwitter"> is on twitter</label>
             <input type="text" data-bind="value: twitterName, visible: isOnTwitter">
         </li>
@@ -55,27 +55,29 @@
     function Friend(name) {
         return {
             name: ko.observable(name),
-            remove: function() {
-                viewModel.friends.remove(this);
-            },
             isOnTwitter: ko.observable(false),
             twitterName: ko.observable()
         };
     }
 
-    var viewModel = {
-        firstName: ko.observable('Bert'),
-        lastName: ko.observable('Smith'),
-        friends: ko.observableArray([new Friend("Bob"), new Friend("Dillan")]),
-        addFriend: function ()  {
-            this.friends.push(new Friend("Gozilla"));
-        }
+    var viewModel = function() {
+        var self = this;
+        self.firstName = ko.observable('Bert');
+        self.lastName = ko.observable('Smith');
+        self.friends = ko.observableArray([new Friend("Bob"), new Friend("Dillan")]);
+        self.addFriend = function ()  {
+            self.friends.push(new Friend("Gozilla"));
+        };
+        self.fullName = ko.dependentObservable(function () {
+            return self.firstName() + ' ' + self.lastName();
+        });
+        self.remove = function (friend) {
+            self.friends.remove(friend);
+        };
 
     };
-    viewModel.fullName = ko.dependentObservable(function () {
-        return this.firstName() + ' ' + this.lastName();
-    }, viewModel);
-    ko.applyBindings(viewModel);
+
+    ko.applyBindings(new viewModel());
 
 </script>
 </body>
