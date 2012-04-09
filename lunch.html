@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title></title>
+    <script type="text/javascript" src="vendor/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="vendor/jquery.tmpl.js"></script>
+    <script type="text/javascript" src="vendor/knockout/knockout-latest.debug.js"></script>
+
+
+
+    <style type="text/css">
+        body {
+            font-family: Helvetica, "Helvetica Neue";
+            background-color:#528CE0;
+
+        }
+        .body {
+            background-color: white;
+            -webkit-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 10px;
+            padding: 20px 40px;
+            margin: 40px;
+        }
+        .calendar {
+            display: table-row;
+        }
+        .calendar .item {
+            display: table-cell;
+            cursor: pointer;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+        }
+        .calendar .item:hover,
+        .calendar .item.active {
+            background: black;
+            color: white;
+        }
+        .item {
+            padding: 10px;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="body">
+    <h3>Calendar</h3>
+
+    <ul class="calendar" data-bind="foreach: menus">
+        <li class="item" data-bind="
+            text: title,
+            click: $root.activateMenu,
+            css: {active: $root.isActiveMenu($data)}
+            "></li>
+    </ul>
+
+    <h3>Menu for <span data-bind="text: activeMenu().title"></span></h3>
+
+</div>
+
+<script type="text/javascript">
+    function Menu(id, title) {
+        return {
+            id: id,
+            title: title
+        };
+    };
+
+    function ViewModel(activeMenuId) {
+        var self = this;
+
+        self.menus = ko.observableArray([
+            new Menu(1, 'Yesterday'),
+            new Menu(2, 'Today'),
+            new Menu(3, 'Tomorrow')]
+        );
+        self.findMenu = function (id) {
+            return ko.utils.arrayFirst(self.menus(), function (menu) {
+                return id == menu.id;
+            });
+        };
+        self.activeMenu = ko.observable(self.findMenu(activeMenuId));
+        self.activateMenu = function(menu) {
+            self.activeMenu(menu);
+        };
+        self.isActiveMenu = function (menu) {
+            return menu.id == self.activeMenu().id;
+        }
+
+    };
+
+    var viewModel = new ViewModel(2);
+    ko.applyBindings(viewModel);
+
+</script>
+</body>
+</html>
