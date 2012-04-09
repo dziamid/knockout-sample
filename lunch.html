@@ -28,7 +28,6 @@
         }
         .calendar .item {
             display: table-cell;
-            cursor: pointer;
             -webkit-border-radius: 5px;
             -moz-border-radius: 5px;
             border-radius: 5px;
@@ -40,6 +39,20 @@
         }
         .item {
             padding: 10px;
+            cursor: pointer;
+
+        }
+        .menu {
+            display: table;
+        }
+
+        .menu .item {
+            display: table-row;
+        }
+
+        .menu .item span {
+            display: table-cell;
+            margin-bottom: 5px;
         }
 
 
@@ -58,8 +71,17 @@
     </ul>
 
     <h3>Menu for <span data-bind="text: activeMenu().title"></span></h3>
-    <ul data-bind="foreach: activeMenuItems">
-        <li data-bind="text: title"></li>
+    <ul class="menu" data-bind="foreach: activeMenuItems">
+        <li class="item">
+            <span data-bind="text: title"></span>
+        </li>
+    </ul>
+
+    <h3>Your order:</h3>
+    <ul class="order" data-bind="foreach: orderItems">
+        <li class="item">
+            <span data-bind="text: amount"></span>
+        </li>
     </ul>
 
 </div>
@@ -79,6 +101,13 @@
             menuId: menuId
         };
     };
+
+    function OrderItem(menuItem, amount) {
+        return {
+            menuItem: menuItem,
+            amount: amount
+        };
+    }
 
     function MenuVM(activeMenuId) {
         var self = this;
@@ -118,6 +147,13 @@
         };
 
         self.activateMenu(self.findMenu(activeMenuId));
+
+        //order
+        self.orderItems = ko.observableArray();
+        self.addToOrder = function (menuItem) {
+            var newOrder = new OrderItem(menuItem, 1);
+            self.orderItems.push(newOrder);
+        }
 
     };
 
