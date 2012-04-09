@@ -58,6 +58,9 @@
     </ul>
 
     <h3>Menu for <span data-bind="text: activeMenu().title"></span></h3>
+    <ul data-bind="foreach: activeMenuItems">
+        <li data-bind="text: title"></li>
+    </ul>
 
 </div>
 
@@ -69,30 +72,56 @@
         };
     };
 
-    function ViewModel(activeMenuId) {
+    function MenuItem(id, title, menuId) {
+        return {
+            id: id,
+            title: title,
+            menuId: menuId
+        };
+    };
+
+    function MenuVM(activeMenuId) {
         var self = this;
 
         self.menus = ko.observableArray([
             new Menu(1, 'Yesterday'),
             new Menu(2, 'Today'),
-            new Menu(3, 'Tomorrow')]
-        );
+            new Menu(3, 'Tomorrow')
+        ]);
+
+        self.menuItems = ko.observableArray([
+            new MenuItem(1, 'Spagetti', 1),
+            new MenuItem(2, 'Makaroni', 1),
+            new MenuItem(3, 'Plov', 2),
+            new MenuItem(3, 'Super sup', 2),
+            new MenuItem(3, 'Govno sup', 3)
+        ]);
+
         self.findMenu = function (id) {
             return ko.utils.arrayFirst(self.menus(), function (menu) {
                 return id == menu.id;
             });
         };
-        self.activeMenu = ko.observable(self.findMenu(activeMenuId));
+        self.findMenuItems = function (menuId) {
+            return ko.utils.arrayFilter(self.menuItems(), function (item) {
+                return menuId == item.menuId;
+            });
+        };
+        self.activeMenu = ko.observable();
+        self.activeMenuItems = ko.observableArray();
         self.activateMenu = function(menu) {
             self.activeMenu(menu);
+            self.activeMenuItems(self.findMenuItems(menu.id));
         };
         self.isActiveMenu = function (menu) {
             return menu.id == self.activeMenu().id;
-        }
+        };
+
+        self.activateMenu(self.findMenu(activeMenuId));
 
     };
 
-    var viewModel = new ViewModel(2);
+    var viewModel = new MenuVM(2);
     ko.applyBindings(viewModel);
 
 </script>
