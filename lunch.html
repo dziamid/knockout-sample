@@ -38,6 +38,10 @@
         .item span {
             display: table-cell;
             padding: 5px 10px;
+            -moz-user-select: none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+            -o-user-select: none;
         }
 
         .calendar.list {
@@ -47,10 +51,20 @@
             display: table-cell;
 
         }
-        .item:hover,
+        .clickable:hover,
         .item.active {
             background: black;
             color: white;
+        }
+
+        .order-items .title {
+            width: 250px;
+        }
+        .menu, .order {
+            width: 300px;
+        }
+        .menu .title {
+            width: 250px;
         }
 
 
@@ -61,27 +75,39 @@
     <h3>Calendar</h3>
 
     <ul class="calendar list" data-bind="foreach: menus">
-        <li class="item" data-bind="click: $root.activateMenu, css: {active: $root.isActiveMenu($data)}">
+        <li class="item clickable" data-bind="click: $root.activateMenu, css: {active: $root.isActiveMenu($data)}">
             <span data-bind="text: title"></span>
         </li>
     </ul>
 
     <h3>Menu for <span data-bind="text: activeMenu().title"></span></h3>
-    <ul class="menu list" data-bind="foreach: activeMenuItems">
-        <li class="item" data-bind="click: $root.addToOrder">
-            <span data-bind="text: title"></span>
-        </li>
-    </ul>
+
+    <div class="menu">
+        <ul class="menu-items list" data-bind="foreach: activeMenuItems">
+            <li class="item clickable" data-bind="click: $root.addToOrder">
+                <span class="title" data-bind="text: title"></span>
+                <span data-bind="text: price"></span>
+            </li>
+        </ul>
+    </div>
+
 
     <h3>Your order:</h3>
-    <ul class="order list" data-bind="foreach: orderItems">
-        <li class="item">
-            <span data-bind="text: title()"></span>
-            <span data-bind="text: amount()"></span>
-            <span data-bind="click: $root.removeFromOrder">-1</span>
-        </li>
-    </ul>
 
+    <div class="order">
+
+        <ul class="order-items list" data-bind="foreach: orderItems">
+            <li class="item">
+                <span class="title" data-bind="text: title()"></span>
+                <span data-bind="text: amount()"></span>
+                <span class="clickable" data-bind="click: $root.removeFromOrder">-1</span>
+                <span class="clickable" data-bind="click: $data.addOne">+1</span>
+            </li>
+        </ul>
+        <div class="total">
+            Total: <span data-bind="text: orderTotal()"></span>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -92,10 +118,11 @@
         };
     };
 
-    function MenuItem(id, title, menuId) {
+    function MenuItem(id, menuId, title, price) {
         return {
             id: id,
             title: title,
+            price: parseFloat(price),
             menuId: menuId
         };
     };
@@ -106,6 +133,9 @@
             amount: ko.observable(amount),
             title: function () {
                 return this.menuItem().title;
+            },
+            price: function () {
+                return this.menuItem().price * this.amount();
             },
             addOne: function () {
                 return this.amount(this.amount() + 1);
@@ -126,11 +156,11 @@
         ]);
 
         self.menuItems = ko.observableArray([
-            new MenuItem(1, 'Spagetti', 1),
-            new MenuItem(2, 'Makaroni', 1),
-            new MenuItem(3, 'Plov', 2),
-            new MenuItem(4, 'Super sup', 2),
-            new MenuItem(5, 'Govno sup', 3)
+            new MenuItem(1, 1, 'Spagetti', 32800),
+            new MenuItem(2, 1, 'Makaroni', 18100),
+            new MenuItem(3, 2, 'Plov', 20500),
+            new MenuItem(4, 2, 'Super sup', 5450),
+            new MenuItem(5, 3, 'Govno sup', 1300)
         ]);
 
         self.findMenu = function (id) {
@@ -158,8 +188,6 @@
             return menu.id == self.activeMenu().id;
         };
 
-        self.activateMenu(self.findMenu(activeMenuId));
-
         //order
         self.addToOrder = function (menuItem) {
 
@@ -183,8 +211,20 @@
             }
         };
 
-        //initial data
         self.orderItems = ko.observableArray();
+
+        self.orderTotal = ko.dependentObservable(function () {
+            var total = 0;
+
+            ko.utils.arrayForEach(self.orderItems(), function(item) {
+                total += item.price();
+            });
+
+            return total;
+        });
+
+        //initial data
+        self.activateMenu(self.findMenu(activeMenuId));
         self.addToOrder(self.findMenuItem(1));
 
     };
