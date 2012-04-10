@@ -78,6 +78,7 @@
         <li class="item">
             <span data-bind="text: title()"></span>
             <span data-bind="text: amount()"></span>
+            <span data-bind="click: $root.removeFromOrder">-1</span>
         </li>
     </ul>
 
@@ -108,6 +109,9 @@
             },
             addOne: function () {
                 return this.amount(this.amount() + 1);
+            },
+            removeOne: function () {
+                return this.amount(this.amount() - 1);
             }
         };
     }
@@ -157,7 +161,6 @@
         self.activateMenu(self.findMenu(activeMenuId));
 
         //order
-        self.orderItems = ko.observableArray();
         self.addToOrder = function (menuItem) {
 
             var item = ko.utils.arrayFirst(self.orderItems(), function (o) {
@@ -172,6 +175,16 @@
 
         };
 
+        self.removeFromOrder = function (item) {
+            if (item.amount() > 1) {
+                item.removeOne();
+            } else {
+                self.orderItems.remove(item);
+            }
+        };
+
+        //initial data
+        self.orderItems = ko.observableArray();
         self.addToOrder(self.findMenuItem(1));
 
     };
