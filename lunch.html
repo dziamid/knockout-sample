@@ -23,36 +23,34 @@
             padding: 20px 40px;
             margin: 40px;
         }
-        .calendar {
+        .list {
+            display: table-row;
+        }
+        .item {
+            cursor: pointer;
+            background: #ccc;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            margin: 5px;
+            list-style: none;
+        }
+        .item span {
+            display: table-cell;
+            padding: 5px 10px;
+        }
+
+        .calendar.list {
             display: table-row;
         }
         .calendar .item {
             display: table-cell;
-            -webkit-border-radius: 5px;
-            -moz-border-radius: 5px;
-            border-radius: 5px;
+
         }
-        .calendar .item:hover,
-        .calendar .item.active {
+        .item:hover,
+        .item.active {
             background: black;
             color: white;
-        }
-        .item {
-            padding: 10px;
-            cursor: pointer;
-
-        }
-        .menu {
-            display: table;
-        }
-
-        .menu .item {
-            display: table-row;
-        }
-
-        .menu .item span {
-            display: table-cell;
-            margin-bottom: 5px;
         }
 
 
@@ -62,24 +60,23 @@
 <div class="body">
     <h3>Calendar</h3>
 
-    <ul class="calendar" data-bind="foreach: menus">
-        <li class="item" data-bind="
-            text: title,
-            click: $root.activateMenu,
-            css: {active: $root.isActiveMenu($data)}
-            "></li>
+    <ul class="calendar list" data-bind="foreach: menus">
+        <li class="item" data-bind="click: $root.activateMenu, css: {active: $root.isActiveMenu($data)}">
+            <span data-bind="text: title"></span>
+        </li>
     </ul>
 
     <h3>Menu for <span data-bind="text: activeMenu().title"></span></h3>
-    <ul class="menu" data-bind="foreach: activeMenuItems">
-        <li class="item">
+    <ul class="menu list" data-bind="foreach: activeMenuItems">
+        <li class="item" data-bind="click: $root.addToOrder">
             <span data-bind="text: title"></span>
         </li>
     </ul>
 
     <h3>Your order:</h3>
-    <ul class="order" data-bind="foreach: orderItems">
+    <ul class="order list" data-bind="foreach: orderItems">
         <li class="item">
+            <span data-bind="text: title()"></span>
             <span data-bind="text: amount"></span>
         </li>
     </ul>
@@ -105,7 +102,10 @@
     function OrderItem(menuItem, amount) {
         return {
             menuItem: menuItem,
-            amount: amount
+            amount: amount,
+            title: function () {
+                return this.menuItem.title;
+            }
         };
     }
 
@@ -122,13 +122,18 @@
             new MenuItem(1, 'Spagetti', 1),
             new MenuItem(2, 'Makaroni', 1),
             new MenuItem(3, 'Plov', 2),
-            new MenuItem(3, 'Super sup', 2),
-            new MenuItem(3, 'Govno sup', 3)
+            new MenuItem(4, 'Super sup', 2),
+            new MenuItem(5, 'Govno sup', 3)
         ]);
 
         self.findMenu = function (id) {
-            return ko.utils.arrayFirst(self.menus(), function (menu) {
-                return id == menu.id;
+            return ko.utils.arrayFirst(self.menus(), function (o) {
+                return id == o.id;
+            });
+        };
+        self.findMenuItem = function (id) {
+            return ko.utils.arrayFirst(self.menuItems(), function (o) {
+                return id == o.id;
             });
         };
         self.findMenuItems = function (menuId) {
@@ -153,7 +158,11 @@
         self.addToOrder = function (menuItem) {
             var newOrder = new OrderItem(menuItem, 1);
             self.orderItems.push(newOrder);
-        }
+        };
+
+        self.addToOrder(self.findMenuItem(1));
+
+
 
     };
 
