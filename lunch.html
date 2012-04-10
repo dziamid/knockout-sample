@@ -77,7 +77,7 @@
     <ul class="order list" data-bind="foreach: orderItems">
         <li class="item">
             <span data-bind="text: title()"></span>
-            <span data-bind="text: amount"></span>
+            <span data-bind="text: amount()"></span>
         </li>
     </ul>
 
@@ -101,10 +101,13 @@
 
     function OrderItem(menuItem, amount) {
         return {
-            menuItem: menuItem,
-            amount: amount,
+            menuItem: ko.observable(menuItem),
+            amount: ko.observable(amount),
             title: function () {
-                return this.menuItem.title;
+                return this.menuItem().title;
+            },
+            addOne: function () {
+                return this.amount(this.amount() + 1);
             }
         };
     }
@@ -156,13 +159,20 @@
         //order
         self.orderItems = ko.observableArray();
         self.addToOrder = function (menuItem) {
-            var newOrder = new OrderItem(menuItem, 1);
-            self.orderItems.push(newOrder);
+
+            var item = ko.utils.arrayFirst(self.orderItems(), function (o) {
+                return menuItem.id == o.menuItem().id;
+            });
+            if (item) {
+                item.addOne();
+            } else {
+                item = new OrderItem(menuItem, 1);
+                self.orderItems.push(item);
+            }
+
         };
 
         self.addToOrder(self.findMenuItem(1));
-
-
 
     };
 
