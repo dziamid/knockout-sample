@@ -14,30 +14,38 @@
 <ul data-bind="foreach: menus">
     <li>
         <span data-bind="text: label()"></span>
+        <span style="color: #ccc" data-bind="text: new Date()"></span>
     </li>
 </ul>
-
+<button data-bind="click: reloadMenus">Reload</button>
 
 <script type="text/javascript">
 
-    var Menu = function(data) {
+    var Menu = function (data) {
 
         ko.mapping.fromJS(data, {}, this);
 
-        this.label = ko.computed(function() {
+        this.label = ko.computed(function () {
             return this.title() + ' (' + this.id() + ')';
         }, this);
     };
 
     function MenuViewModel() {
         var self = this;
-        var dataMenus = '[{"id":1,"title":"Yesterday"},{"id":2,"title":"Today"},{"id":3,"title":"Friday"}]';
-        self.menus = ko.mapping.fromJSON(dataMenus, {
+
+        self.mappingOptions = {
             create: function (options) {
                 return new Menu(options.data);
             }
-        });
+        };
+        
+        self.menus = ko.observableArray([]);
 
+        self.reloadMenus = function () {
+            $.getJSON('menu.php', function (result) {
+                ko.mapping.fromJS(result, self.mappingOptions, self.menus);
+            });
+        }
     }
 
     var menuVM = new MenuViewModel();
