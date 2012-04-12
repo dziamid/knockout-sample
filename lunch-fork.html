@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title></title>
+    <script type="text/javascript" src="vendor/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="vendor/jquery.tmpl.js"></script>
+    <script type="text/javascript" src="vendor/knockout/knockout-latest.debug.js"></script>
+    <script type="text/javascript" src="vendor/knockout-mapping/knockout.mapping-latest.debug.js"></script>
+
+</head>
+<body>
+
+<ul data-bind="foreach: menus">
+    <li>
+        <span data-bind="text: label()"></span>
+    </li>
+</ul>
+
+
+<script type="text/javascript">
+
+    var Menu = function(data) {
+
+        ko.mapping.fromJS(data, {}, this);
+
+        this.label = ko.computed(function() {
+            return this.title() + ' (' + this.id() + ')';
+        }, this);
+    };
+
+    function MenuViewModel() {
+        var self = this;
+        var dataMenus = '[{"id":1,"title":"Yesterday"},{"id":2,"title":"Today"},{"id":3,"title":"Friday"}]';
+        self.menus = ko.mapping.fromJSON(dataMenus, {
+            create: function (options) {
+                return new Menu(options.data);
+            }
+        });
+
+    }
+
+    var menuVM = new MenuViewModel();
+    ko.applyBindings(menuVM);
+
+</script>
+</body>
+</html>
