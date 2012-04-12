@@ -36,9 +36,12 @@
         self.mappingOptions = {
             create: function (options) {
                 return new Menu(options.data);
+            },
+            key: function(data) {
+                return ko.utils.unwrapObservable(data.id);
             }
         };
-        
+
         self.menus = ko.observableArray([]);
 
         self.reloadMenus = function () {
