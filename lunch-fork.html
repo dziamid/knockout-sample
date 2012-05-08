@@ -17,38 +17,89 @@
         <span style="color: #ccc" data-bind="text: new Date()"></span>
     </li>
 </ul>
-<button data-bind="click: reloadMenus">Reload</button>
+<button data-bind="click: preloadMenus">Reload</button>
+
+<button data-bind="click: createMenu">Create</button>
+
+<button data-bind="click: saveMenus">Save</button>
 
 <script type="text/javascript">
 
-    var Menu = function (data) {
+    ko._dirty = function(root, isInitiallyDirty) {
+        var result = function() {};
+        var _initialState = ko.observable(ko.toJSON(root));
+        var _isInitiallyDirty = ko.observable(isInitiallyDirty);
 
+        result.isDirty = ko.dependentObservable(function() {
+            return _isInitiallyDirty() || _initialState() !== ko.toJSON(root);
+        });
+
+        result.reset = function() {
+            _initialState(ko.toJSON(root));
+            _isInitiallyDirty(false);
+        };
+
+        return result;
+    };
+
+    ko.generateId = function () {
+        return -(new Date()).getTime();
+    };
+
+    var Menu = function (data) {
+        if (data.id === undefined) {
+            data.id = ko.generateId();
+        }
         ko.mapping.fromJS(data, {}, this);
 
+        this._dirty = new ko._dirty(this, data.id < 0);
+
         this.label = ko.computed(function () {
-            return this.title() + ' (' + this.id() + ')';
+            return this.title() + ' (' + (this.id() ? this.id() : 'new') + ')';
         }, this);
     };
 
-    function MenuViewModel() {
-        var self = this;
-
-        self.mappingOptions = {
+    var mapping = {
+        menu: {
             create: function (options) {
                 return new Menu(options.data);
             },
-            key: function(data) {
+            key: function (data) {
                 return ko.utils.unwrapObservable(data.id);
             }
-        };
+        }
+    };
 
+    function MenuViewModel() {
+
+        var self = this;
+
+        //initially empty
         self.menus = ko.observableArray([]);
 
-        self.reloadMenus = function () {
+        self.preloadMenus = function () {
             $.getJSON('menu.php', function (result) {
-                ko.mapping.fromJS(result, self.mappingOptions, self.menus);
+
+                ko.mapping.fromJS(result, mapping.menu, self.menus);
             });
-        }
+        };
+
+        self.createMenu = function () {
+            self.menus.push(new Menu({title: 'Yahooo'}));
+
+        };
+
+        self.saveMenus = function () {
+            console.log(ko.mapping.toJS(self.dirtyMenus()));
+        };
+
+        self.dirtyMenus = ko.computed(function() {
+            return ko.utils.arrayFilter(self.menus(), function(item) {
+                return item._dirty.isDirty();
+            });
+        });
+
+
     }
 
     var menuVM = new MenuViewModel();
