@@ -1,0 +1,290 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title></title>
+    <script type="text/javascript" src="vendor/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="vendor/knockout/knockout-latest.debug.js"></script>
+    <style type="text/css">
+        .layout {
+
+        }
+
+        .layout:after {
+            content: ".";
+            display: block;
+            height: 0;
+            clear: both;
+            visibility: hidden;
+        }
+
+        .column {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            margin: 0;
+            float: left;
+        }
+
+        .groups.column {
+            width: 20%;
+        }
+
+        .items.column {
+            width: 80%;
+        }
+
+        .grid {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            width: 100%;
+        }
+
+        .grid .head {
+            display: table-header-group;
+        }
+
+        .grid .body {
+            display: table-row-group;
+        }
+
+        .grid .row {
+            display: table-row;
+        }
+
+        .grid .row.level-1 > div {
+            padding-left: 20px;
+        }
+
+        .grid .row.level-2 > div {
+            padding-left: 40px;
+        }
+
+        .grid .row > div {
+            display: table-cell;
+            padding: 2px 8px 2px 4px;
+        }
+
+        .grid .head .row,
+        .grid .row {
+            background-color: #efefef;
+        }
+
+        .grid .row.isNew {
+            background-color: #DBFFB4;
+        }
+
+        .grid .row.hasErrors {
+            background-color: #EE5757;
+        }
+
+        .text {
+            width: 200px;
+            text-align: left;
+        }
+
+        .numbers {
+            width: 80px;
+            text-align: right;
+        }
+
+        .actions {
+            width: 120px;
+            visibility: hidden;
+        }
+
+        .grid .actions .static,
+        .grid .row:hover .actions {
+            visibility: visible;
+        }
+
+        .grid .action:hover {
+            color: #EE5757;
+        }
+
+        .grid .action:active {
+            color: #C20000;
+        }
+
+        .clickable {
+            cursor: pointer;
+            color: blue;
+        }
+
+        .grid input[type=text] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <div class="items column">
+        <div class="grid">
+            <div class="head">
+                <div class="row">
+                    <div class="text">Title</div>
+                    <div class="numbers">Price</div>
+                    <div class="numbers">Amount</div>
+                </div>
+            </div>
+            <div class="body" data-bind="template: {name: templateName, foreach: content}"></div>
+        </div>
+
+        <button data-bind="click: create">Add</button>
+
+    </div>
+</div>
+
+<script id="viewItemTmpl" type="text/html">
+    <div class="row" >
+        <div class="text" data-bind="text: title"></div>
+        <div class="numbers" data-bind="text: price"></div>
+        <div class="numbers" data-bind="text: amount"></div>
+        <div class="actions">
+            <span class="action clickable" data-bind="click: $root.edit">Edit</span>
+            <span class="action clickable" data-bind="click: $root.remove">Del</span>
+        </div>
+    </div>
+</script>
+
+<script id="editItemTmpl" type="text/html">
+    <div class="row">
+        <div class="text">
+            <input type="text" data-bind="value: title.temp">
+        </div>
+        <div class="numbers">
+            <input type="text" data-bind="value: price.temp">
+        </div>
+        <div class="numbers">
+            <input type="text" data-bind="value: amount.temp">
+        </div>
+        <div class="actions">
+            <span class="action clickable static" data-bind="click: $root.save">Save</span>
+            <span class="action clickable static" data-bind="click: $root.cancel">Cancel</span>
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript">
+
+    var App = function () {
+        var self = this;
+
+        /**
+         * All items
+         */
+        self.content = ko.observableArray([
+            new App.Item({title: 'Item 1', price: 100, amount: 5}),
+            new App.Item({title: 'Item 2', price: 200, amount: 4}),
+            new App.Item({title: 'Item 3', price: 300, amount: 3})
+        ]);
+
+        /**
+         * Items that are currently in edit mode
+         *
+         */
+        self.pending = ko.observableArray([]);
+
+        self.templateName = function (item) {
+            return self.isPending(item) ? 'editItemTmpl' : 'viewItemTmpl';
+        };
+
+        self.remove = function (item) {
+            self.pending.remove(item);
+            self.content.remove(item);
+        };
+
+        self.create = function () {
+            var item = new App.Item();
+            self.content.push(item);
+            self.pending.push(item);
+        };
+
+        self.edit = function (item) {
+            self.pending.push(item);
+        };
+
+        self.cancel = function (item) {
+            item.reset();
+            self.pending.remove(item);
+        };
+
+        self.save = function (item) {
+            item.commit();
+            self.pending.remove(item);
+        };
+
+        self.isPending = function (item) {
+            return ko.utils.arrayFirst(self.pending(), function (_item) {
+                return _item === item;
+            });
+        };
+
+    };
+
+    App.Item = function (data) {
+        data = data || {};
+        var self = this;
+        self.editable = ['title', 'price', 'amount'];
+
+        ko.utils.arrayForEach(self.editable, function (name) {
+            self[name] = ko.protectedObservable(data[name]);
+        });
+
+        self.reset = function () {
+            ko.utils.arrayForEach(self.editable, function (name) {
+                self[name].reset();
+            });
+        };
+
+        self.commit = function () {
+            ko.utils.arrayForEach(self.editable, function (name) {
+                self[name].commit();
+            });
+        };
+    };
+
+
+    //wrapper for an observable that protects value until committed
+    ko.protectedObservable = function (initial) {
+        //private variables
+        var _temp = ko.observable(initial);
+        var _actual = ko.observable(initial);
+
+        var result = ko.dependentObservable({
+            read: function () {
+                return _actual();
+            },
+            write: function (newValue) {
+                _temp(newValue);
+            }
+        });
+
+        //commit the temporary value to our observable, if it is different
+        result.commit = function () {
+            var temp = _temp();
+            if (temp !== _actual()) {
+                _actual(temp);
+            }
+        };
+
+        //notify subscribers to update their value with the original
+        result.reset = function () {
+            _actual.valueHasMutated();
+            _temp(_actual());
+        };
+
+        //public property that stores value that is being edited
+        result.temp = _temp;
+
+        return result;
+    };
+
+    var app = new App();
+    ko.applyBindings(app);
+
+
+</script>
+</body>
+</html>
